@@ -1,10 +1,10 @@
 package Interpreter;
 
-class NLInteger extends Variable {
+class NLInteger extends Value {
 
     private int value;
 
-    public NLInteger(int value) {
+    NLInteger(int value) {
         this.value = value;
     }
 
@@ -14,7 +14,7 @@ class NLInteger extends Variable {
 
     @Override
     String getValue() {
-        return null;
+        return Integer.toString(value);
     }
 
 }

@@ -1,15 +1,15 @@
 package Interpreter;
 
-public class NLString extends Variable {
+class NLString extends Value {
 
     private String value;
 
-    public NLString(String value) {
+    NLString(String value) {
         this.value = value;
     }
 
     @Override
     String getValue() {
-        return null;
+        return value;
     }
 }

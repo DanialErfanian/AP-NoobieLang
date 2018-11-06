@@ -1,16 +1,15 @@
 package Interpreter;
 
-public class NLFloat extends Variable {
+public class NLFloat extends Value {
+    private float value;
 
-    float value;
-
-    public NLFloat(float value) {
+    NLFloat(float value) {
         this.value = value;
     }
 
     @Override
     String getValue() {
-        return null;
+        return Float.toString(value);
     }
 
     public void setValue(float value) {

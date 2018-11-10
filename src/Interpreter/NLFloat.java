@@ -1,5 +1,7 @@
 package Interpreter;
 
+import Constants.Constants;
+
 public class NLFloat extends Value {
     private float value;
 
@@ -9,7 +11,9 @@ public class NLFloat extends Value {
 
     @Override
     String getValue() {
-        return Float.toString(value);
+        double x = Math.pow(10, Constants.FLOAT_DECIMAL_NUMBERS);
+        double value = Math.round(this.value * x) / x;
+        return Double.toString(value);
     }
 
     public void setValue(float value) {

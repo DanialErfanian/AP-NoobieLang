@@ -8,10 +8,6 @@ class NLInteger extends Value {
         this.value = value;
     }
 
-    public void setValue(int value) {
-        this.value = value;
-    }
-
     @Override
     public Value add(Value value) {
         if (value instanceof NLString)

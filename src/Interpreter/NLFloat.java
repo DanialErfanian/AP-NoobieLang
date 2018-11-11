@@ -24,7 +24,4 @@ public class NLFloat extends Value {
         return Double.toString(value);
     }
 
-    public void setValue(float value) {
-        this.value = value;
-    }
 }

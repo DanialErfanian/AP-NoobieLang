@@ -6,7 +6,7 @@ public class Constants {
     public static final String UNNAMED_VARIABLE_REGEX = "(?:[^\\$,]|\\$\\$|\\$,)+";
     public static final String VARIABLE_REGEX = UNNAMED_VARIABLE_REGEX + "|(?:" + NAMED_VARIABLE_REGEX + ")";
 
-    public static final String BLOCK_LEVEL_REGEX = "(if|loop)-(start|end) " + VARIABLE_REGEX + ")(<|>|==|!=)(" + VARIABLE_REGEX + ")";
+    public static final String BLOCK_LEVEL_REGEX = "(if|loop)-(start|end) (" + VARIABLE_REGEX + ")(<|>|==|!=)(" + VARIABLE_REGEX + ")";
     public static final String PUT_REGEX = "put (" + VARIABLE_REGEX + ") to (" + NAMED_VARIABLE_REGEX + ")";
 
     public static final String SPLIT_3ARGS_REGEX = "\\w* (.*) from (.*) save-to (.*)";

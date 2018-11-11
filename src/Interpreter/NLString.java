@@ -12,4 +12,9 @@ class NLString extends Value {
     String getValue() {
         return value;
     }
+
+    @Override
+    public Value add(Value value) {
+        return new NLString(this.value + value.getValue());
+    }
 }

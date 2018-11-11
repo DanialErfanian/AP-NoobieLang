@@ -13,6 +13,16 @@ class NLInteger extends Value {
     }
 
     @Override
+    public Value add(Value value) {
+        if (value instanceof NLString)
+            return new NLString(this.value + value.getValue());
+        else if (value instanceof NLFloat)
+            return new NLFloat((float) this.value + Float.parseFloat(value.getValue()));
+        else
+            return new NLInteger(this.value + Integer.parseInt(value.getValue()));
+    }
+
+    @Override
     String getValue() {
         return Integer.toString(value);
     }

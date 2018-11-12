@@ -19,7 +19,7 @@ public class Variable {
             resultValue = new NLInteger(Integer.parseInt(value));
         } catch (NumberFormatException e) {
             try {
-                resultValue = new NLFloat(Float.parseFloat(value));
+                resultValue = new NLFloat(Double.parseDouble(value));
             } catch (NumberFormatException g) {
                 resultValue = new NLString(value);
             }
@@ -42,10 +42,10 @@ public class Variable {
         return this.toString().equals(obj.toString());
     }
 
-    private float getFloatValue() throws BaseException {
+    private double getFloatValue() throws BaseException {
         if (this.getValue() instanceof NLString)
             throw new BadInputException();
-        return Float.parseFloat(this.toString());
+        return Double.parseDouble(this.toString());
     }
 
     boolean isGreater(Variable variable) throws BaseException {
@@ -68,13 +68,13 @@ public class Variable {
     }
 
     static Variable multiply(ArrayList<Variable> variables) throws BaseException {
-        float result = 1;
+        double result = 1;
         boolean haveFloat = false;
         for (Variable variable : variables) {
             if (variable.getValue() instanceof NLString)
                 throw new BadInputException();
             else
-                result *= Float.parseFloat(variable.toString());
+                result *= Double.parseDouble(variable.toString());
             haveFloat |= (variable.getValue() instanceof NLFloat);
         }
         if (haveFloat)
@@ -86,13 +86,13 @@ public class Variable {
     static Variable subtract(ArrayList<Variable> variables, Variable from) throws BaseException {
         if (from.getValue() instanceof NLString)
             throw new BadInputException();
-        float result = Float.parseFloat(from.toString());
+        double result = Double.parseDouble(from.toString());
         boolean haveFloat = false;
         for (Variable variable : variables) {
             if (variable.getValue() instanceof NLString)
                 throw new BadInputException();
             else
-                result -= Float.parseFloat(variable.toString());
+                result -= Double.parseDouble(variable.toString());
             haveFloat |= (variable.getValue() instanceof NLFloat);
         }
         if (haveFloat)
@@ -103,13 +103,13 @@ public class Variable {
 
 
     static Variable divide(ArrayList<Variable> variables, Variable from) throws BaseException {
-        float result = Float.parseFloat(from.toString());
+        double result = Double.parseDouble(from.toString());
         boolean haveFloat = false;
         for (Variable variable : variables) {
             if (variable.getValue() instanceof NLString)
                 throw new BadInputException();
             else {
-                float v = Float.parseFloat(variable.toString());
+                double v = Double.parseDouble(variable.toString());
                 if (v == 0)
                     throw new BadInputException();
                 result /= v;

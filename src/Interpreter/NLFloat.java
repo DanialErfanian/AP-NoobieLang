@@ -3,9 +3,9 @@ package Interpreter;
 import Constants.Constants;
 
 public class NLFloat extends Value {
-    private float value;
+    private double value;
 
-    NLFloat(float value) {
+    NLFloat(double value) {
         this.value = value;
     }
 
@@ -14,7 +14,7 @@ public class NLFloat extends Value {
         if (value instanceof NLString)
             return new NLString(this.value + value.toString());
         else
-            return new NLFloat(this.value + Float.parseFloat(value.getValue()));
+            return new NLFloat(this.value + Double.parseDouble(value.getValue()));
     }
 
     @Override

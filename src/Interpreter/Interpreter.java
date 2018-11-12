@@ -34,7 +34,6 @@ public class Interpreter {
                 errStream.println(i + ": " + match[i]);
             errStream.println();
         }
-
     }// DONE
 
     private void initialize() {

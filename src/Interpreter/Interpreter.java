@@ -105,14 +105,14 @@ public class Interpreter {
             if (ch != '$')
                 result.append(ch);
             else if (i + 1 < string.length())
-                if (string.charAt(i + 1) == ',')
+                if (string.charAt(i + 1) == ',') {
                     result.append(',');
-                else if (string.charAt(i + 1) == '$')
+                    i++;
+                } else if (string.charAt(i + 1) == '$') {
                     result.append('$');
-                else
+                    i++;
+                } else
                     result.append(ch);
-            else
-                result.append(ch);
         }
         return result.toString();
     }

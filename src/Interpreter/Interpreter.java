@@ -94,11 +94,22 @@ public class Interpreter {
     }// DONE
 
     private String parseString(String string) {
-        string = string.replaceAll("\\G\\$,", "~");
-        string = string.replaceAll("\\G\\$\\$", "`");
-        string = string.replaceAll("`", "\\$");
-        string = string.replaceAll("~", ",");
-        return string;
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < string.length(); i++) {
+            char ch = string.charAt(i);
+            if (ch != '$')
+                result.append(ch);
+            else if (i + 1 < string.length())
+                if (string.charAt(i + 1) == ',')
+                    result.append(',');
+                else if (string.charAt(i + 1) == '$')
+                    result.append('$');
+                else
+                    result.append(ch);
+            else
+                result.append(ch);
+        }
+        return result.toString();
     }
 
     private ArrayList<String> split(String command) throws BaseException {
@@ -112,8 +123,18 @@ public class Interpreter {
         }
         String from = matcher.group(2), save = matcher.group(3);
         ArrayList<String> variables = splitVariables(matcher.group(1));
-        if (from.equals("")) from = null;
-        if (save.equals("")) save = null;
+        for (String variable : variables) {
+            if (!variable.matches(Constants.VARIABLE_REGEX))
+                throw new SyntaxErrorException();
+        }
+        if (from.equals(""))
+            from = null;
+        else if (!from.matches(Constants.VARIABLE_REGEX))
+            throw new SyntaxErrorException();
+        if (save.equals(""))
+            save = null;
+        else if (!save.matches(Constants.VARIABLE_REGEX))
+            throw new SyntaxErrorException();
         variables.add(from);
         variables.add(save);
         return variables;
@@ -225,12 +246,10 @@ public class Interpreter {
                     variable = Variable.parseVariable(scanner.nextLine());
                 else
                     variable = new Variable(new NLInteger(0));
-                if (Constants.DEBUG) {
-                    errStream.println("adding to memory with args:(name, line, variable)" +
-                            name.substring(1) + " " +
-                            endLine + " " +
-                            variable);
-                }
+                if (Constants.DEBUG) errStream.println("adding to memory with args:(name, line, variable)" +
+                        name.substring(1) + " " +
+                        endLine + " " +
+                        variable);
                 addToMemory(name.substring(1), endLine, variable, !readFromInput);
             }
 

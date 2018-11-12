@@ -1,24 +1,40 @@
-// TODO first check Syntax error
-// TODO next undefined-variable
-// TODO next bad-input Be careful :)
-
-
-package Interpreter;
-
-import Constants.Constants;
-import Exceptions.BaseException;
-import Exceptions.SyntaxErrorException;
-import Exceptions.UndefinedVariableException;
-
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Scanner;
-import java.util.Stack;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Interpreter {
+class BadInputException extends BaseException {
+
+    @Override
+    public String getError(int line) {
+        return "bad-input in-line " + (line + 1);
+    }
+}
+
+abstract class BaseException extends Exception {
+    abstract public String getError(int line);
+}
+
+class Constants {
+    public static final boolean DEBUG = false;
+    public static final String NAMED_VARIABLE_REGEX = "\\$[\\w\\-]+";
+    public static final String UNNAMED_VARIABLE_REGEX = "(?:[^\\$,]|\\$\\$|\\$,)+";
+    public static final String VARIABLE_REGEX = UNNAMED_VARIABLE_REGEX + "|(?:" + NAMED_VARIABLE_REGEX + ")";
+
+    public static final String BLOCK_LEVEL_REGEX = "(if|loop)-((start (" + VARIABLE_REGEX + ")(<|>|==|!=)(" + VARIABLE_REGEX + "))|(end))";
+    public static final String PUT_REGEX = "put (" + VARIABLE_REGEX + ") to (" + NAMED_VARIABLE_REGEX + ")";
+
+    private static final String SPLIT_3ARGS_REGEX = "\\w* (.*) from (.*) save-to (.*)";
+    private static final String SPLIT_2ARGS_REGEX = "\\w* (.*)()? save-to (.*)";
+    private static final String SPLIT_1ARGS_REGEX = "\\w* (.*)()?()?";
+    public static final String[] SPLIT_REGEX = {SPLIT_3ARGS_REGEX, SPLIT_2ARGS_REGEX, SPLIT_1ARGS_REGEX};
+
+    public static final String CONDITIONAL_EXPRESSION_REGEX = "[^ ]* (" + VARIABLE_REGEX + ")(<|>|==|!=)(" + VARIABLE_REGEX + ")";
+
+    public static final int FLOAT_DECIMAL_NUMBERS = 2;
+}
+
+class Interpreter {
     private String[] lines;
     private Scanner scanner;
     private PrintStream outputStream;
@@ -105,11 +121,13 @@ public class Interpreter {
             if (ch != '$')
                 result.append(ch);
             else if (i + 1 < string.length())
-                if (string.charAt(i + 1) == ',')
+                if (string.charAt(i + 1) == ',') {
                     result.append(',');
-                else if (string.charAt(i + 1) == '$')
+                    i++;
+                } else if (string.charAt(i + 1) == '$') {
                     result.append('$');
-                else
+                    i++;
+                } else
                     result.append(ch);
             else
                 result.append(ch);
@@ -434,4 +452,297 @@ public class Interpreter {
         memories.add(new Memory());
         run(0, lines.length);
     }// DONE
+}
+
+public class ALL {
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        List<String> lines = readLines(scanner);
+        String[] code_lines = lines.toArray(new String[0]);
+        Interpreter interpreter = new Interpreter(code_lines, scanner, System.out, System.err);
+        interpreter.run();
+    }
+
+    private static List<String> readLines(Scanner scanner) {
+        List<String> lines = new ArrayList<>();
+        while (true) {
+            String cur = scanner.nextLine();
+            lines.add(cur);
+            if (cur.equals("code-end"))
+                break;
+        }
+        return lines;
+    }
+}
+
+class Memory {
+
+    private Map<String, Variable> memory = new TreeMap<>();
+    private Map<String, Integer> lifeLine = new TreeMap<>();
+
+    Variable get(String name, int line) throws BaseException {
+        Variable variable = memory.get(name);
+        Integer lifeLine = this.lifeLine.get(name);
+        if (variable == null || lifeLine == null || lifeLine < line)
+            throw new UndefinedVariableException(name);
+        return variable;
+    }
+
+    void add(String name, int lifeLine, Variable variable) {
+        memory.put(name, variable);
+        this.lifeLine.put(name, lifeLine);
+    }
+
+    private void addToMemory(String name, Variable variable) {
+        memory.put(name, variable);
+    }
+
+    private void addToLifeLine(String name, int lifeLine) {
+        this.lifeLine.put(name, lifeLine);
+    }
+
+    Memory Clone() {
+        Memory result = new Memory();
+        for (Map.Entry<String, Variable> entry : memory.entrySet()) {
+            String key = entry.getKey();
+            Variable value = entry.getValue();
+            result.addToMemory(key, value);
+        }
+        for (Map.Entry<String, Integer> entry : lifeLine.entrySet()) {
+            String key = entry.getKey();
+            Integer value = entry.getValue();
+            result.addToLifeLine(key, value);
+        }
+        return result;
+    }
+
+}
+
+class NLFloat extends Value {
+    private double value;
+
+    NLFloat(double value) {
+        this.value = value;
+    }
+
+    @Override
+    public Value add(Value value) {
+        if (value instanceof NLString)
+            return new NLString(this.value + value.toString());
+        else
+            return new NLFloat(this.value + Double.parseDouble(value.getValue()));
+    }
+
+    @Override
+    String getValue() {
+        double x = Math.pow(10, Constants.FLOAT_DECIMAL_NUMBERS);
+        double value = Math.round(this.value * x) / x;
+        return String.format("%.2f", value);
+    }
+
+}
+
+class NLInteger extends Value {
+
+    private int value;
+
+    NLInteger(int value) {
+        this.value = value;
+    }
+
+    @Override
+    public Value add(Value value) {
+        if (value instanceof NLString)
+            return new NLString(this.value + value.getValue());
+        else if (value instanceof NLFloat)
+            return new NLFloat((double) this.value + Double.parseDouble(value.getValue()));
+        else
+            return new NLInteger(this.value + Integer.parseInt(value.getValue()));
+    }
+
+    @Override
+    String getValue() {
+        return Integer.toString(value);
+    }
+
+}
+
+class NLString extends Value {
+
+    private String value;
+
+    NLString(String value) {
+        this.value = value;
+    }
+
+    @Override
+    String getValue() {
+        return value;
+    }
+
+    @Override
+    public Value add(Value value) {
+        return new NLString(this.value + value.getValue());
+    }
+}
+
+class SyntaxErrorException extends BaseException {
+
+    public String getError(int line) {
+        return "syntax-error in-line " + (line + 1);
+    }
+}
+
+class UndefinedVariableException extends BaseException {
+    private String variableName;
+
+    public UndefinedVariableException(String variableName) {
+        this.variableName = variableName;
+    }
+
+    @Override
+    public String getError(int line) {
+        return "undefined-variable " + variableName + " in-line " + (line + 1);
+    }
+}
+
+abstract class Value {
+    abstract String getValue();
+
+    abstract public Value add(Value value);
+
+    @Override
+    public String toString() {
+        return getValue();
+    }
+}
+
+class Variable {
+
+    private Value value;
+
+    Variable(Value value) {
+        this.value = value;
+    }
+
+    static Variable parseVariable(String value) {
+        Value resultValue;
+        try {
+            resultValue = new NLInteger(Integer.parseInt(value));
+        } catch (NumberFormatException e) {
+            try {
+                resultValue = new NLFloat(Double.parseDouble(value));
+            } catch (NumberFormatException g) {
+                resultValue = new NLString(value);
+            }
+        }
+        return new Variable(resultValue);
+    }
+
+    Value getValue() {
+        return value;
+    }
+
+    void setValue(Value value) {
+        this.value = value;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Variable))
+            return false;
+        return this.toString().equals(obj.toString());
+    }
+
+    private double getFloatValue() throws BaseException {
+        if (this.getValue() instanceof NLString)
+            throw new BadInputException();
+        return Double.parseDouble(this.toString());
+    }
+
+    boolean isGreater(Variable variable) throws BaseException {
+        return this.getFloatValue() > variable.getFloatValue();
+    }
+
+    @Override
+    public String toString() {
+        return value.getValue();
+    }
+
+    static Variable add(ArrayList<Variable> variables) {
+        Value resultValue = new NLInteger(0);
+        for (Variable variable : variables)
+            if (variable.getValue() instanceof NLString)
+                resultValue = new NLString("");
+        for (Variable variable : variables)
+            resultValue = resultValue.add(variable.getValue());
+        return new Variable(resultValue);
+    }
+
+    static Variable multiply(ArrayList<Variable> variables) throws BaseException {
+        double result = 1;
+        boolean haveFloat = false;
+        for (Variable variable : variables) {
+            if (variable.getValue() instanceof NLString)
+                throw new BadInputException();
+            else
+                result *= Double.parseDouble(variable.toString());
+            haveFloat |= (variable.getValue() instanceof NLFloat);
+        }
+        if (haveFloat)
+            return new Variable(new NLFloat(result));
+        else
+            return new Variable(new NLInteger((int) result));
+    }
+
+    static Variable subtract(ArrayList<Variable> variables, Variable from) throws BaseException {
+        if (from.getValue() instanceof NLString)
+            throw new BadInputException();
+        double result = Double.parseDouble(from.toString());
+        boolean haveFloat = false;
+        for (Variable variable : variables) {
+            if (variable.getValue() instanceof NLString)
+                throw new BadInputException();
+            else
+                result -= Double.parseDouble(variable.toString());
+            haveFloat |= (variable.getValue() instanceof NLFloat);
+        }
+        if (haveFloat)
+            return new Variable(new NLFloat(result));
+        else
+            return new Variable(new NLInteger((int) result));
+    }
+
+    static Variable divide(ArrayList<Variable> variables, Variable from) throws BaseException {
+        if (from.getValue() instanceof NLString)
+            throw new BadInputException();
+        boolean haveFloat = false;
+        for (Variable variable : variables) {
+            if (variable.getValue() instanceof NLString)
+                throw new BadInputException();
+            haveFloat = haveFloat | (variable.getValue() instanceof NLFloat);
+        }
+        Value value;
+        if (haveFloat) {
+            double result = Double.parseDouble(from.toString());
+            for (Variable variable : variables) {
+                double v = Double.parseDouble(variable.toString());
+                if (v == 0)
+                    throw new BadInputException();
+                result /= v;
+            }
+            value = new NLFloat(result);
+        } else {
+            int result = Integer.parseInt(from.toString());
+            for (Variable variable : variables) {
+                int v = Integer.parseInt(variable.toString());
+                if (v == 0)
+                    throw new BadInputException();
+                result /= v;
+            }
+            value = new NLInteger(result);
+        }
+        return new Variable(value);
+    }
 }

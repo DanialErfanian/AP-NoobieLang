@@ -103,6 +103,8 @@ public class Variable {
 
 
     static Variable divide(ArrayList<Variable> variables, Variable from) throws BaseException {
+        if (from.getValue() instanceof NLString)
+            throw new BadInputException();
         double result = Double.parseDouble(from.toString());
         boolean haveFloat = false;
         for (Variable variable : variables) {

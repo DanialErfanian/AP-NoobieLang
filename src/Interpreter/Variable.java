@@ -27,10 +27,13 @@ public class Variable {
         return new Variable(resultValue);
     }
 
-    private Value getValue() {
+    Value getValue() {
         return value;
     }
 
+    void setValue(Value value) {
+        this.value = value;
+    }
 
     @Override
     public boolean equals(Object obj) {
@@ -57,6 +60,9 @@ public class Variable {
     static Variable add(ArrayList<Variable> variables) {
         Value resultValue = new NLInteger(0);
         for (Variable variable : variables)
+            if (variable.getValue() instanceof NLString)
+                resultValue = new NLString("");
+        for (Variable variable : variables)
             resultValue = resultValue.add(variable.getValue());
         return new Variable(resultValue);
     }
@@ -78,6 +84,8 @@ public class Variable {
     }
 
     static Variable subtract(ArrayList<Variable> variables, Variable from) throws BaseException {
+        if (from.getValue() instanceof NLString)
+            throw new BadInputException();
         float result = Float.parseFloat(from.toString());
         boolean haveFloat = false;
         for (Variable variable : variables) {

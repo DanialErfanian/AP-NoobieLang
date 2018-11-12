@@ -23,4 +23,28 @@ class Memory {
         memory.put(name, variable);
         this.lifeLine.put(name, lifeLine);
     }
+
+    private void addToMemory(String name, Variable variable) {
+        memory.put(name, variable);
+    }
+
+    private void addToLifeLine(String name, int lifeLine) {
+        this.lifeLine.put(name, lifeLine);
+    }
+
+    Memory Clone() {
+        Memory result = new Memory();
+        for (Map.Entry<String, Variable> entry : memory.entrySet()) {
+            String key = entry.getKey();
+            Variable value = entry.getValue();
+            result.addToMemory(key, value);
+        }
+        for (Map.Entry<String, Integer> entry : lifeLine.entrySet()) {
+            String key = entry.getKey();
+            Integer value = entry.getValue();
+            result.addToLifeLine(key, value);
+        }
+        return result;
+    }
+
 }

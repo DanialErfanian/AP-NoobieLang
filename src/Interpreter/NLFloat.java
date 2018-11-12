@@ -21,7 +21,7 @@ public class NLFloat extends Value {
     String getValue() {
         double x = Math.pow(10, Constants.FLOAT_DECIMAL_NUMBERS);
         double value = Math.round(this.value * x) / x;
-        return Double.toString(value);
+        return String.format("%.2f", value);
     }
 
 }

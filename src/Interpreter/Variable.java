@@ -105,22 +105,32 @@ public class Variable {
     static Variable divide(ArrayList<Variable> variables, Variable from) throws BaseException {
         if (from.getValue() instanceof NLString)
             throw new BadInputException();
-        double result = Double.parseDouble(from.toString());
         boolean haveFloat = false;
         for (Variable variable : variables) {
             if (variable.getValue() instanceof NLString)
                 throw new BadInputException();
-            else {
+            haveFloat = haveFloat | (variable.getValue() instanceof NLFloat);
+        }
+        Value value;
+        if (haveFloat) {
+            double result = Double.parseDouble(from.toString());
+            for (Variable variable : variables) {
                 double v = Double.parseDouble(variable.toString());
                 if (v == 0)
                     throw new BadInputException();
                 result /= v;
             }
-            haveFloat |= (variable.getValue() instanceof NLFloat);
+            value = new NLFloat(result);
+        } else {
+            int result = Integer.parseInt(from.toString());
+            for (Variable variable : variables) {
+                int v = Integer.parseInt(variable.toString());
+                if (v == 0)
+                    throw new BadInputException();
+                result /= v;
+            }
+            value = new NLInteger(result);
         }
-        if (haveFloat)
-            return new Variable(new NLFloat(result));
-        else
-            return new Variable(new NLInteger((int) result));
+        return new Variable(value);
     }
 }

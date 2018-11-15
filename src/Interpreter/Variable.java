@@ -105,7 +105,7 @@ public class Variable {
     static Variable divide(ArrayList<Variable> variables, Variable from) throws BaseException {
         if (from.getValue() instanceof NLString)
             throw new BadInputException();
-        boolean haveFloat = false;
+        boolean haveFloat = from.getValue() instanceof NLFloat;
         for (Variable variable : variables) {
             if (variable.getValue() instanceof NLString)
                 throw new BadInputException();

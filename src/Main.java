@@ -18,6 +18,7 @@ public class Main {
         List<String> lines = new ArrayList<>();
         while (true) {
             String cur = scanner.nextLine();
+            cur = cur.trim();
             lines.add(cur);
             if (cur.equals("code-end"))
                 break;
